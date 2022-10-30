@@ -7,7 +7,8 @@ edition = "2021"
 
 [dependencies]
 # Too heavy to compile on a 16GB linux laptop...
-# dlib-face-recognition = "0.2.2"
+dlib-face-recognition = { version = "0.2.2", features = ["embed-all"] }
+image = "0.23.14"
 pixels = "0.9.0"
 v4l = "0.13.0"
 winit = "0.27.3"

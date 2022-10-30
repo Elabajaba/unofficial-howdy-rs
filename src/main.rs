@@ -1,3 +1,4 @@
+use dlib_face_recognition::{FaceDetectorTrait, ImageMatrix};
 use howdy_rs::CamCapture;
 use pixels::{Pixels, SurfaceTexture};
 use v4l::io::traits::CaptureStream;
@@ -8,11 +9,11 @@ use winit::window::WindowBuilder;
 
 mod lib;
 
-
-
 fn main() {
     let mut cam_capture = CamCapture::new();
     let cam_settings = &cam_capture.cam_settings;
+    let width = cam_settings.width;
+    let height = cam_settings.height;
 
     let event_loop = EventLoop::new();
     let window = {
@@ -31,6 +32,8 @@ fn main() {
         Pixels::new(cam_settings.width, cam_settings.height, surface_texture).unwrap()
     };
 
+    let face_detector = dlib_face_recognition::FaceDetector::new();
+
     event_loop.run(move |event, _, control_flow| {
         // Draw the current frame
         if let Event::RedrawRequested(_) = event {
@@ -42,6 +45,18 @@ fn main() {
                 let val = [buf[i]; 4];
                 pix.copy_from_slice(&val);
             }
+
+            let image = image::ImageBuffer::from_raw(width, height, frame).unwrap();
+            // let image = image::open("assets/obama_1.jpg").unwrap().to_rgb8();
+            let image_matrix = ImageMatrix::from_image(&image);
+
+            let detection = face_detector.face_locations(&image_matrix);
+            if detection.is_empty() {
+                println!("no faces detected");
+            } else {
+                println!("faces detected {}", detection.len());
+            }
+
             if pixels
                 .render()
                 // .map_err(|e| error!("pixels.render() failed: {}", e))
@@ -51,6 +66,7 @@ fn main() {
                 return;
             }
         }
+
 
         window.request_redraw();
     });
